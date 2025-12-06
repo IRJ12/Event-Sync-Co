@@ -8,7 +8,7 @@ An app based on events happening in educational institutions. The start page has
 - Students are only allowed to view the schedule of events and upload assignments and tests to the app.
 - Once logged in to one of these profiles, a page with events, home and event calendar:
 - The event page describes the event and gives the registration details and contact information if required.
-- The home page has information about the school and its goals and aim. It also shows announcements and notices sent by the school.
+- The home page has information about the school and its goals and aim. 
 - The event calendar shows the schedule of events for the year as updated by the school.
 ## What makes our project unique?
 - There is a virtual representation of how the event is supposed to look like.
