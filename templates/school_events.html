@@ -1,0 +1,121 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <div class="mb-8">
+        <a href="{{ url_for('index') }}" class="inline-flex items-center text-blue-300 hover:text-white transition-colors mb-6">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clip-rule="evenodd" />
+            </svg>
+            Back to Schools
+        </a>
+        
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
+            <div>
+                <h1 class="text-3xl font-bold text-white mb-1">{{ school.name }}</h1>
+                <div class="flex items-center text-blue-200">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                    <span>{{ school.location }}</span>
+                </div>
+            </div>
+            
+            {% if current_user.is_authenticated and (current_user.role in ['admin', 'teacher'] and (current_user.role == 'admin' or current_user.school_id == school.id)) %}
+                <a href="{{ url_for('create_event', school_id=school.id) }}" 
+                   class="btn-primary px-6 py-2 rounded-lg font-medium mt-4 md:mt-0">
+                    + New Event
+                </a>
+            {% endif %}
+        </div>
+        
+        {% if school.description %}
+            <div class="event-card p-6 mb-8">
+                <h2 class="text-xl font-semibold text-white mb-3">About This School</h2>
+                <p class="text-gray-300">{{ school.description }}</p>
+            </div>
+        {% endif %}
+    </div>
+    
+    <section>
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-2xl font-semibold text-white">Upcoming Events</h2>
+            <span class="text-sm text-blue-300">{{ events|length }} events</span>
+        </div>
+        
+        {% if events %}
+            <div class="space-y-4">
+                {% for event in events %}
+                    <div class="event-card rounded-lg p-6">
+                        <div class="flex flex-col md:flex-row md:items-center md:justify-between">
+                            <div class="mb-4 md:mb-0">
+                                <div class="flex items-center mb-2">
+                                    <h3 class="text-xl font-semibold text-white">{{ event.title }}</h3>
+                                    {% if current_user.is_authenticated and current_user.role == 'admin' %}
+                                        <span class="ml-2 px-2 py-1 bg-blue-900 bg-opacity-50 text-blue-200 text-xs rounded-full">
+                                            {{ event.school.name }}
+                                        </span>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="flex flex-wrap items-center text-sm text-blue-200 mb-3">
+                                    <span class="flex items-center mr-4">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                        </svg>
+                                        {{ event.date.strftime('%A, %B %d, %Y') }}
+                                    </span>
+                                    <span class="flex items-center">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                        {{ event.date.strftime('%I:%M %p') }}
+                                    </span>
+                                </div>
+                                
+                                {% if event.description %}
+                                    <p class="text-gray-300">{{ event.description|truncate(200) }}</p>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="flex space-x-2">
+                                {% if current_user.is_authenticated and (current_user.role == 'admin' or (current_user.role == 'teacher' and current_user.school_id == school.id)) %}
+                                    <a href="{{ url_for('edit_event', event_id=event.id) }}" 
+                                       class="btn-secondary px-4 py-2 rounded-md text-sm whitespace-nowrap">
+                                        Edit Event
+                                    </a>
+                                {% endif %}
+                                <a href="{{ url_for('event_details', event_id=event.id) }}" 
+                                   class="btn-primary px-4 py-2 rounded-md text-sm whitespace-nowrap">
+                                    View Details
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="event-card rounded-lg p-12 text-center">
+                <div class="max-w-md mx-auto">
+                    <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-blue-900 bg-opacity-50 text-blue-300 mb-4">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-medium text-white mb-2">No Events Scheduled</h3>
+                    <p class="text-gray-400 mb-6">There are no upcoming events for {{ school.name }} at the moment.</p>
+                    
+                    {% if current_user.is_authenticated and (current_user.role in ['admin', 'teacher'] and (current_user.role == 'admin' or current_user.school_id == school.id)) %}
+                        <a href="{{ url_for('create_event', school_id=school.id) }}" 
+                           class="inline-flex items-center btn-primary px-6 py-2 rounded-lg font-medium">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd" />
+                            </svg>
+                            Create Your First Event
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        {% endif %}
+    </section>
+{% endblock %}
