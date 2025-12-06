@@ -1,9 +1,14 @@
 import os
 from flask import Flask, render_template, redirect, url_for, flash, request, abort
 from flask_login import LoginManager, current_user
+from flask_wtf.csrf import CSRFProtect
+from flask_mail import Mail, Message
 from itsdangerous import URLSafeTimedSerializer
 from dotenv import load_dotenv
 from extensions import db, login_manager
+
+# Import models to ensure they are registered with SQLAlchemy
+from models import User, School, Event
 
 # Load environment variables
 load_dotenv()
@@ -19,16 +24,60 @@ def create_app():
     db.init_app(app)
     login_manager.init_app(app)
     login_manager.login_view = 'auth.login'
+    
+    # Initialize CSRF protection
+    csrf = CSRFProtect(app)
+    csrf.init_app(app)
 
-    # Import and register routes
-    from routes import init_routes
-    init_routes(app)
+    # Email configuration
+    app.config['MAIL_SERVER'] = 'smtp.gmail.com'
+    app.config['MAIL_PORT'] = 587
+    app.config['MAIL_USE_TLS'] = True
+    app.config['MAIL_USERNAME'] = 'eventsyncandco@gmail.com'
+    app.config['MAIL_PASSWORD'] = os.getenv('MAIL_PASSWORD')  # Set this in your .env file
+    app.config['MAIL_DEFAULT_SENDER'] = 'eventsyncandco@gmail.com'
+    
+    # Initialize extensions
+    mail = Mail()
+    mail.init_app(app)
 
+    # Initialize serializer
+    app.serializer = URLSafeTimedSerializer(app.config['SECRET_KEY'])
+    app.mail = mail  # Make mail instance available throughout the app
+    
+    # Configure email sending (in production, replace with a real email service)
+    def send_email(subject, recipient, template):
+        # This is a placeholder that just prints to the console
+        print(f"Email to {recipient} - Subject: {subject}")
+        print(template)
+        return True
+    
+    app.send_email = send_email
+    
+    # Register blueprints
+    from routes.main import main_bp
+    from routes.auth import auth_bp
+    
+    app.register_blueprint(main_bp)
+    app.register_blueprint(auth_bp, url_prefix='/auth')
+    
+    # Error handlers
+    @app.errorhandler(403)
+    def forbidden_error(error):
+        return render_template('errors/403.html'), 403
+    
+    @app.errorhandler(404)
+    def not_found_error(error):
+        return render_template('errors/404.html'), 404
+    
+    @app.errorhandler(500)
+    def internal_error(error):
+        db.session.rollback()
+        return render_template('errors/500.html'), 500
+    
     return app
 
 def create_sample_data():
-    from models import School, User
-    
     # Create sample schools if they don't exist
     schools_data = [
         {'name': 'Greenwood High', 'location': 'Bangalore'},
@@ -55,77 +104,28 @@ def create_sample_data():
     
     db.session.commit()
 
+def init_db():
+    # Create the application instance
+    app = create_app()
+    
+    with app.app_context():
+        # Create all database tables
+        db.create_all()
+        # Add sample data
+        create_sample_data()
+    
+    return app
+
 # Create the application instance
 app = create_app()
 
-# User profile and settings
-@app.route('/profile', methods=['GET', 'POST'])
-@login_required
-def profile():
-    form = ChangePasswordForm()
-    
-    if form.validate_on_submit():
-        if current_user.check_password(form.current_password.data):
-            current_user.set_password(form.new_password.data)
-            db.session.commit()
-            flash('Your password has been updated!', 'success')
-            return redirect(url_for('profile'))
-        else:
-            flash('Current password is incorrect.', 'danger')
-    
-    return render_template('profile.html', form=form)
-
-@app.route('/forgot-password', methods=['GET', 'POST'])
-def forgot_password():
-    if current_user.is_authenticated:
-        return redirect(url_for('index'))
-        
-    form = ForgotPasswordForm()
-    
-    if form.validate_on_submit():
-        user = User.query.filter_by(email=form.email.data).first()
-        if user:
-            # Generate password reset token
-            token = app.serializer.dumps(user.email, salt='password-reset')
-            reset_url = url_for('reset_password', token=token, _external=True)
-            
-            # Send reset email
-            send_email(
-                'Reset Your Password',
-                user.email,
-                f'To reset your password, visit the following link: {reset_url}\n\nIf you did not make this request, simply ignore this email.'
-            )
-            
-        flash('If an account exists with that email, a password reset link has been sent.', 'info')
-        return redirect(url_for('login'))
-    
-    return render_template('forgot_password.html', form=form)
-
-@app.route('/reset-password/<token>', methods=['GET', 'POST'])
-def reset_password(token):
-    if current_user.is_authenticated:
-        return redirect(url_for('index'))
-        
-    try:
-        email = current_app.serializer.loads(token, salt='password-reset', max_age=3600)  # 1 hour expiry
-    except:
-        flash('The password reset link is invalid or has expired.', 'danger')
-        return redirect(url_for('forgot_password'))
-    
-    user = User.query.filter_by(email=email).first_or_404()
-    form = ResetPasswordForm()
-    
-    if form.validate_on_submit():
-        user.set_password(form.password.data)
-        db.session.commit()
-        flash('Your password has been reset! You can now log in with your new password.', 'success')
-        return redirect(url_for('login'))
-    
-    return render_template('reset_password.html', form=form)
-
+# Set up user loader
+@login_manager.user_loader
+def load_user(user_id):
+    return User.query.get(int(user_id))
 
 if __name__ == '__main__':
-    with app.app_context():
-        db.create_all()
-        create_sample_data()
+    # Initialize the database
+    init_db()
+    # Run the application
     app.run(debug=True)
