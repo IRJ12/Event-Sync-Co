@@ -54,7 +54,7 @@
                 <div class="space-x-6 flex items-center">
                     <a href="{{ url_for('main.index') }}" class="nav-link text-gray-300 hover:text-white">Home</a>
                     {% if current_user.is_authenticated %}
-                        <a href="{{ url_for('main.profile') }}" class="nav-link text-gray-300 hover:text-white">Profile</a>
+                        <a href="{{ url_for('main.index') }}" class="nav-link text-gray-300 hover:text-white">Profile</a>
                         {% if current_user.role == 'admin' %}
                             <a href="{{ url_for('main.manage_schools') }}" class="nav-link text-gray-300 hover:text-white">Manage Schools</a>
                         {% endif %}
