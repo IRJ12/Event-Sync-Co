@@ -13,16 +13,16 @@ def login():
         
     form = LoginForm()
     if form.validate_on_submit():
-        user = User.query.filter_by(email=form.email.data).first()
+        user = User.query.filter_by(username=form.username.data).first()
         if user and user.check_password(form.password.data):
-            if user.is_verified:
+            if user.is_active:
                 login_user(user, remember=True)
                 next_page = request.args.get('next')
                 return redirect(next_page or url_for('main.index'))
             else:
-                flash('Please verify your email before logging in.', 'warning')
+                flash('This account has been deactivated.', 'warning')
         else:
-            flash('Login failed. Check your email and password.', 'danger')
+            flash('Login failed. Check your username and password.', 'danger')
     return render_template('auth/login.html', form=form)
 
 @auth_bp.route('/register', methods=['GET', 'POST'])
@@ -31,56 +31,47 @@ def register():
         return redirect(url_for('main.index'))
         
     form = RegistrationForm()
-    form.school_id.choices = [(s.id, s.name) for s in School.query.order_by('name').all()]
+    # Only show schools for teacher registration
+    form.school_id.choices = [(0, '-- Select School --')] + [(s.id, s.name) for s in School.query.order_by('name').all()]
     
     if form.validate_on_submit():
-        user = User(
-            email=form.email.data,
-            name=form.name.data,
-            role=form.role.data,
-            school_id=form.school_id.data,
-            is_verified=False
-        )
-        user.set_password(form.password.data)
-        
-        # Generate verification token
-        token = current_app.serializer.dumps(user.email, salt='email-verification')
-        user.verification_token = token
-        
-        db.session.add(user)
-        db.session.commit()
-        
-        # Send verification email
-        verification_url = url_for('auth.verify_email', token=token, _external=True)
-        current_app.send_email(
-            'Verify Your Email',
-            user.email,
-            f'Please click the following link to verify your email: {verification_url}'
-        )
-        
-        flash('Registration successful! Please check your email to verify your account.', 'success')
-        return redirect(url_for('auth.login'))
-        
+        try:
+            # Check if username already exists
+            if User.query.filter_by(username=form.username.data).first():
+                flash('Username already taken. Please choose a different one.', 'danger')
+                return redirect(url_for('auth.register'))
+                
+            # Check if email already exists
+            if User.query.filter_by(email=form.email.data).first():
+                flash('Email already registered. Please use a different email or login.', 'danger')
+                return redirect(url_for('auth.register'))
+            
+            # Create new user
+            user = User(
+                username=form.username.data,
+                email=form.email.data,
+                name=form.name.data,
+                role=form.role.data,
+                school_id=form.school_id.data if form.role.data == 'teacher' and form.school_id.data != 0 else None,
+                is_active=True
+            )
+            user.set_password(form.password.data)
+            
+            # Generate verification token
+            token = current_app.serializer.dumps(user.email, salt='email-verification')
+            user.verification_token = token
+            
+            db.session.add(user)
+            db.session.commit()
+            
+            return redirect(url_for('auth.login'))
+            
+        except Exception as e:
+            db.session.rollback()
+            current_app.logger.error(f"Error during registration: {str(e)}")
+            flash('An error occurred during registration. Please try again.', 'danger')
+    
     return render_template('auth/register.html', form=form)
-
-@auth_bp.route('/verify-email/<token>')
-def verify_email(token):
-    try:
-        email = current_app.serializer.loads(token, salt='email-verification', max_age=86400)
-    except:
-        flash('The verification link is invalid or has expired.', 'danger')
-        return redirect(url_for('auth.login'))
-    
-    user = User.query.filter_by(email=email).first_or_404()
-    if user.is_verified:
-        flash('Account already verified. Please login.', 'info')
-    else:
-        user.is_verified = True
-        user.verification_token = None
-        db.session.commit()
-        flash('Email verified successfully! You can now log in.', 'success')
-    
-    return redirect(url_for('auth.login'))
 
 @auth_bp.route('/logout')
 @login_required
@@ -136,7 +127,8 @@ def reset_password(token):
     
     try:
         email = current_app.serializer.loads(token, salt='password-reset', max_age=3600)  # 1 hour expiry
-    except:
+    except Exception as e:
+        current_app.logger.error(f"Password reset error: {str(e)}")
         flash('The password reset link is invalid or has expired.', 'danger')
         return redirect(url_for('auth.forgot_password'))
     

@@ -1,0 +1,166 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <h1 class="text-3xl font-bold mb-2">{{ event.title }} - 3D Layout</h1>
+    <p class="text-gray-600 mb-6">Explore the 3D layout of the event</p>
+    
+    <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+        <div id="scene-container" style="width: 100%; height: 70vh;"></div>
+    </div>
+    
+    <div class="mt-6">
+        <a href="{{ url_for('main.event_details', event_id=event.id) }}" 
+           class="text-blue-600 hover:text-blue-800">
+            &larr; Back to Event Details
+        </a>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/three@0.132.2/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.132.2/examples/js/controls/OrbitControls.js"></script>
+
+<script>
+    let scene, camera, renderer, controls;
+    
+    function init() {
+        scene = new THREE.Scene();
+        scene.background = new THREE.Color(0xf0f0f0);
+        
+        camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.set(5, 5, 5);
+        
+        renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(document.getElementById('scene-container').clientWidth, 
+                         document.getElementById('scene-container').clientHeight);
+        document.getElementById('scene-container').appendChild(renderer.domElement);
+        
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+        scene.add(ambientLight);
+        
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+        directionalLight.position.set(1, 1, 1);
+        scene.add(directionalLight);
+        
+        const gridHelper = new THREE.GridHelper(20, 20);
+        scene.add(gridHelper);
+        
+        controls = new THREE.OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        
+        loadLayout();
+        
+        window.addEventListener('resize', onWindowResize, false);
+        
+        animate();
+    }
+    
+    function loadLayout() {
+        fetch(`/api/events/{{ event.id }}/3d-layout`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.layout) {
+                    data.layout.forEach(item => {
+                        let geometry, material, mesh;
+                        
+                        switch(item.type) {
+                            case 'stage':
+                                geometry = new THREE.BoxGeometry(4, 0.2, 2);
+                                material = new THREE.MeshPhongMaterial({ color: 0x8B4513 });
+                                mesh = new THREE.Mesh(geometry, material);
+                                break;
+                                
+                            case 'chair':
+                                geometry = new THREE.BoxGeometry(0.5, 1, 0.5);
+                                material = new THREE.MeshPhongMaterial({ color: 0x1E90FF });
+                                mesh = new THREE.Mesh(geometry, material);
+                                break;
+                                
+                            case 'table':
+                                geometry = new THREE.CylinderGeometry(0.8, 1, 0.7, 8);
+                                material = new THREE.MeshPhongMaterial({ color: 0x8B4513 });
+                                mesh = new THREE.Mesh(geometry, material);
+                                break;
+                                
+                            case 'plant':
+                                const baseGeometry = new THREE.CylinderGeometry(0.3, 0.5, 0.2, 8);
+                                const baseMaterial = new THREE.MeshPhongMaterial({ color: 0x8B4513 });
+                                const base = new THREE.Mesh(baseGeometry, baseMaterial);
+                                
+                                const leavesGeometry = new THREE.ConeGeometry(0.7, 1.5, 8);
+                                const leavesMaterial = new THREE.MeshPhongMaterial({ color: 0x228B22 });
+                                const leaves = new THREE.Mesh(leavesGeometry, leavesMaterial);
+                                leaves.position.y = 1;
+                                
+                                mesh = new THREE.Group();
+                                mesh.add(base);
+                                mesh.add(leaves);
+                                break;
+                                
+                            case 'poster':
+                                geometry = new THREE.PlaneGeometry(1.5, 2);
+                                material = new THREE.MeshPhongMaterial({ 
+                                    color: 0xFFFFFF,
+                                    side: THREE.DoubleSide
+                                });
+                                mesh = new THREE.Mesh(geometry, material);
+                                break;
+                        }
+                        
+                        if (mesh) {
+                            mesh.position.set(
+                                item.position.x,
+                                item.position.y,
+                                item.position.z
+                            );
+                            
+                            if (item.rotation) {
+                                mesh.rotation.set(
+                                    item.rotation.x,
+                                    item.rotation.y,
+                                    item.rotation.z
+                                );
+                            }
+                            
+                            if (item.scale) {
+                                mesh.scale.set(
+                                    item.scale.x,
+                                    item.scale.y,
+                                    item.scale.z
+                                );
+                            }
+                            
+                            scene.add(mesh);
+                        }
+                    });
+                }
+            })
+            .catch(error => {
+                console.error('Error loading 3D layout:', error);
+            });
+    }
+    
+    function onWindowResize() {
+        const container = document.getElementById('scene-container');
+        camera.aspect = container.clientWidth / container.clientHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(container.clientWidth, container.clientHeight);
+    }
+    
+    function animate() {
+        requestAnimationFrame(animate);
+        controls.update();
+        renderer.render(scene, camera);
+    }
+    
+    window.onload = init;
+</script>
+
+<style>
+    #scene-container {
+        width: 100%;
+        height: 100%;
+        display: block;
+    }
+</style>
+{% endblock %}

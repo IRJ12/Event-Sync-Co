@@ -8,13 +8,13 @@
         <div class="col-md-6">
             <div class="card">
                 <div class="card-header">
-                    <h2 class="text-center">Login</h2>
+                    <h2 class="text-center text-dark">Login</h2>
                 </div>
-                <div class="card-body">
+                <div class="card-body text-dark">
                     {% with messages = get_flashed_messages(with_categories=true) %}
                         {% if messages %}
                             {% for category, message in messages %}
-                                <div class="alert alert-{{ category }}">{{ message }}</div>
+                                <div class="alert alert-{{ category }} text-dark">{{ message }}</div>
                             {% endfor %}
                         {% endif %}
                     {% endwith %}
@@ -22,30 +22,28 @@
                     <form method="POST" action="{{ url_for('auth.login') }}">
                         {{ form.hidden_tag() }}
                         <div class="mb-3">
-                            {{ form.email.label(class="form-label") }}
-                            {{ form.email(class="form-control" + (" is-invalid" if form.email.errors else ""), placeholder="Enter your email") }}
-                            {% if form.email.errors %}
-                                {% for error in form.email.errors %}
-                                    <div class="invalid-feedback">{{ error }}</div>
-                                {% endfor %}
-                            {% endif %}
+                            <label for="username" class="form-label text-dark">Username</label>
+                            <input type="text" class="form-control" id="username" name="username" required placeholder="Enter your username">
                         </div>
                         <div class="mb-3">
-                            {{ form.password.label(class="form-label") }}
-                            {{ form.password(class="form-control" + (" is-invalid" if form.password.errors else ""), placeholder="Enter your password") }}
-                            {% if form.password.errors %}
-                                {% for error in form.password.errors %}
-                                    <div class="invalid-feedback">{{ error }}</div>
-                                {% endfor %}
-                            {% endif %}
+                            <label for="password" class="form-label text-dark">Password</label>
+                            <input type="password" class="form-control" id="password" name="password" required placeholder="Enter your password">
                         </div>
                         
                         <div class="d-grid gap-2">
                             <button type="submit" class="btn btn-primary">Login</button>
+                            <div class="text-center my-2">
+                                <p class="text-muted">- OR -</p>
+                            </div>
+                            <button type="button" class="btn btn-outline-secondary text-dark" 
+                                    onclick="document.getElementById('username').value='admin'; 
+                                             document.getElementById('password').focus();">
+                                Login as Admin
+                            </button>
                         </div>
                     </form>
                     <div class="mt-3 text-center">
-                        <p>Don't have an account? <a href="{{ url_for('auth.register') }}">Register here</a></p>
+                        <p class="text-dark">Don't have an account? <a href="{{ url_for('auth.register') }}" class="text-primary">Register here</a></p>
                     </div>
                 </div>
             </div>

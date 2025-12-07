@@ -1,0 +1,301 @@
+{% extends "base.html" %}
+
+{% block extra_css %}
+<style>
+    .chat-container {
+        max-width: 800px;
+        margin: 0 auto;
+        border-radius: 10px;
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+    }
+    
+    .chat-header {
+        background: #4F46E5;
+        color: white;
+        padding: 1.5rem;
+        text-align: center;
+    }
+    
+    .chat-messages {
+        height: 400px;
+        overflow-y: auto;
+        padding: 1.5rem;
+        background: #f9fafb;
+    }
+    
+    .message {
+        margin-bottom: 1rem;
+        max-width: 80%;
+    }
+    
+    .bot-message {
+        align-self: flex-start;
+        background: white;
+        border-radius: 1rem 1rem 1rem 0;
+        padding: 0.75rem 1rem;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    }
+    
+    .user-message {
+        align-self: flex-end;
+        background: #4F46E5;
+        color: white;
+        border-radius: 1rem 1rem 0 1rem;
+        padding: 0.75rem 1rem;
+        margin-left: auto;
+    }
+    
+    .chat-input {
+        display: flex;
+        padding: 1rem;
+        background: white;
+        border-top: 1px solid #e5e7eb;
+    }
+    
+    .chat-input input {
+        flex: 1;
+        padding: 0.75rem;
+        border: 1px solid #d1d5db;
+        border-radius: 0.375rem;
+        margin-right: 0.5rem;
+    }
+    
+    .chat-input button {
+        background: #4F46E5;
+        color: white;
+        border: none;
+        border-radius: 0.375rem;
+        padding: 0 1.5rem;
+        cursor: pointer;
+        transition: background 0.2s;
+    }
+    
+    .chat-input button:hover {
+        background: #4338CA;
+    }
+    
+    .typing-indicator {
+        display: flex;
+        padding: 0.5rem 1rem;
+        background: white;
+        border-radius: 1rem;
+        margin-bottom: 1rem;
+        width: fit-content;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    }
+    
+    .typing-indicator span {
+        height: 8px;
+        width: 8px;
+        background: #9ca3af;
+        border-radius: 50%;
+        display: inline-block;
+        margin: 0 2px;
+        animation: bounce 1.5s infinite ease-in-out;
+    }
+    
+    .typing-indicator span:nth-child(2) {
+        animation-delay: 0.2s;
+    }
+    
+    .typing-indicator span:nth-child(3) {
+        animation-delay: 0.4s;
+    }
+    
+    @keyframes bounce {
+        0%, 60%, 100% { transform: translateY(0); }
+        30% { transform: translateY(-5px); }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <h1 class="text-3xl font-bold text-gray-800 mb-8 text-center">Contact Us</h1>
+    
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <!-- Contact Information -->
+        <div class="space-y-6">
+            <div class="bg-white p-6 rounded-lg shadow-md">
+                <h2 class="text-xl font-semibold mb-4">Get in Touch</h2>
+                <div class="space-y-4">
+                    <div class="flex items-start">
+                        <div class="flex-shrink-0 h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center">
+                            <svg class="h-5 w-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                            </svg>
+                        </div>
+                        <div class="ml-4">
+                            <h3 class="text-sm font-medium text-gray-900">Address</h3>
+                            <p class="text-sm text-gray-500">123 Event Street, Tech City, TC 12345</p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-start">
+                        <div class="flex-shrink-0 h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center">
+                            <svg class="h-5 w-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                            </svg>
+                        </div>
+                        <div class="ml-4">
+                            <h3 class="text-sm font-medium text-gray-900">Email</h3>
+                            <p class="text-sm text-gray-500">support@eventsyncco.com</p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-start">
+                        <div class="flex-shrink-0 h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center">
+                            <svg class="h-5 w-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                            </svg>
+                        </div>
+                        <div class="ml-4">
+                            <h3 class="text-sm font-medium text-gray-900">Phone</h3>
+                            <p class="text-sm text-gray-500">+1 (555) 123-4567</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white p-6 rounded-lg shadow-md">
+                <h2 class="text-xl font-semibold mb-4">Business Hours</h2>
+                <div class="space-y-2 text-sm text-gray-600">
+                    <div class="flex justify-between">
+                        <span>Monday - Friday</span>
+                        <span>9:00 AM - 6:00 PM</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span>Saturday</span>
+                        <span>10:00 AM - 4:00 PM</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span>Sunday</span>
+                        <span>Closed</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Chatbot Section -->
+        <div class="lg:col-span-2">
+            <div class="chat-container bg-white">
+                <div class="chat-header">
+                    <h2 class="text-xl font-semibold">AI Assistant</h2>
+                    <p class="text-sm opacity-80">How can I help you today?</p>
+                </div>
+                
+                <div class="chat-messages flex flex-col" id="chat-messages">
+                    <div class="message bot-message">
+                        Hello! I'm your Event Sync Co assistant. How can I help you with your event today?
+                    </div>
+                    <div id="typing-indicator" class="typing-indicator hidden">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </div>
+                </div>
+                
+                <div class="chat-input">
+                    <input type="text" id="user-input" placeholder="Type your message here..." class="focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                    <button id="send-button">
+                        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const chatMessages = document.getElementById('chat-messages');
+    const userInput = document.getElementById('user-input');
+    const sendButton = document.getElementById('send-button');
+    const typingIndicator = document.getElementById('typing-indicator');
+    
+    // Sample responses for the chatbot
+    const responses = {
+        'hello': 'Hello! How can I assist you with your event today?',
+        'hi': 'Hi there! How can I help you with Event Sync Co?',
+        'help': 'I can help you with event information, booking, and general inquiries. What would you like to know?',
+        'pricing': 'Our pricing varies based on the type and scale of the event. Could you tell me more about your event?',
+        'contact': 'You can reach us at support@eventsyncco.com or call us at +1 (555) 123-4567 during business hours.',
+        'thanks': "You're welcome! Is there anything else I can help you with?",
+        'bye': 'Goodbye! Feel free to come back if you have more questions.',
+        'default': "I'm not sure I understand. Could you rephrase that? I can help with event information, booking, and general inquiries."
+    };
+    
+    // Add a message to the chat
+    function addMessage(message, isUser = false) {
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `message ${isUser ? 'user-message' : 'bot-message'}`;
+        messageDiv.textContent = message;
+        chatMessages.appendChild(messageDiv);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+    
+    // Show typing indicator
+    function showTypingIndicator() {
+        typingIndicator.classList.remove('hidden');
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+    
+    // Hide typing indicator
+    function hideTypingIndicator() {
+        typingIndicator.classList.add('hidden');
+    }
+    
+    // Process user input and generate response
+    function processUserInput() {
+        const message = userInput.value.trim();
+        if (message === '') return;
+        
+        // Add user message to chat
+        addMessage(message, true);
+        userInput.value = '';
+        
+        // Show typing indicator
+        showTypingIndicator();
+        
+        // Simulate bot thinking
+        setTimeout(() => {
+            hideTypingIndicator();
+            
+            // Simple keyword matching for responses
+            const lowerMessage = message.toLowerCase();
+            let response = responses['default'];
+            
+            for (const [key, value] of Object.entries(responses)) {
+                if (lowerMessage.includes(key)) {
+                    response = value;
+                    break;
+                }
+            }
+            
+            // Add bot response to chat
+            addMessage(response);
+        }, 1000 + Math.random() * 1000); // Random delay between 1-2 seconds
+    }
+    
+    // Event listeners
+    sendButton.addEventListener('click', processUserInput);
+    
+    userInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            processUserInput();
+        }
+    });
+    
+    // Initial greeting
+    setTimeout(() => {
+        addMessage("Need help with anything specific about your event? I'm here to help!");
+    }, 1500);
+});
+</script>
+{% endblock %}

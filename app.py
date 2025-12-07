@@ -97,7 +97,7 @@ def create_sample_data():
             email='admin@example.com',
             name='Admin User',
             role='admin',
-            is_verified=True
+            is_active=True
         )
         admin.set_password('admin123')
         db.session.add(admin)
@@ -112,7 +112,7 @@ def init_db():
         # Create all database tables
         db.create_all()
         # Add sample data
-        create_sample_data()
+        # create_sample_data()
     
     return app
 

@@ -6,9 +6,15 @@
         <p class="text-blue-200 mb-8">Discover and manage school events in one place</p>
         
         {% if current_user.is_authenticated and current_user.role in ['admin', 'teacher'] %}
-            <a href="{{ url_for('create_event') }}" class="inline-block btn-primary px-6 py-3 rounded-lg font-medium text-lg mb-8">
-                Create New Event
-            </a>
+            {% if current_user.role == 'teacher' %}
+                <a href="{{ url_for('main.new_event', school_id=current_user.school_id) }}" class="inline-block btn-primary px-6 py-3 rounded-lg font-medium text-lg mb-8">
+                    Create New Event
+                </a>
+            {% elif current_user.role == 'admin' %}
+                <a href="{{ url_for('main.manage_schools') }}" class="inline-block btn-primary px-6 py-3 rounded-lg font-medium text-lg mb-8">
+                    Manage Schools
+                </a>
+            {% endif %}
         {% endif %}
     </div>
 

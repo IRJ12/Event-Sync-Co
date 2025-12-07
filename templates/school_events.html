@@ -2,7 +2,7 @@
 
 {% block content %}
     <div class="mb-8">
-        <a href="{{ url_for('index') }}" class="inline-flex items-center text-blue-300 hover:text-white transition-colors mb-6">
+        <a href="{{ url_for('main.index') }}" class="inline-flex items-center text-blue-300 hover:text-white transition-colors mb-6">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
                 <path fill-rule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clip-rule="evenodd" />
             </svg>
@@ -22,7 +22,7 @@
             </div>
             
             {% if current_user.is_authenticated and (current_user.role in ['admin', 'teacher'] and (current_user.role == 'admin' or current_user.school_id == school.id)) %}
-                <a href="{{ url_for('create_event', school_id=school.id) }}" 
+                <a href="{{ url_for('main.new_event', school_id=school.id) }}" 
                    class="btn-primary px-6 py-2 rounded-lg font-medium mt-4 md:mt-0">
                     + New Event
                 </a>
@@ -78,12 +78,22 @@
                                 {% endif %}
                             </div>
                             
-                            <div class="flex space-x-2">
+                            <div class="flex flex-wrap gap-2 mt-2">
                                 {% if current_user.is_authenticated and (current_user.role == 'admin' or (current_user.role == 'teacher' and current_user.school_id == school.id)) %}
                                     <a href="{{ url_for('edit_event', event_id=event.id) }}" 
                                        class="btn-secondary px-4 py-2 rounded-md text-sm whitespace-nowrap">
                                         Edit Event
                                     </a>
+                                    {% if current_user.role == 'teacher' %}
+                                        <a href="{{ url_for('main.event_3d_builder', event_id=event.id) }}" 
+                                           class="inline-flex items-center bg-blue-600 text-white px-4 py-2 rounded-md text-sm whitespace-nowrap hover:bg-blue-700">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 4a2 2 0 114 0v1h1.5a1.5 1.5 0 011.5 1.5v2.5h-2v-2h-5v2h-2v-2.5A1.5 1.5 0 019.5 5H11V4z" />
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 9.5A1.5 1.5 0 016.5 8H7v8h10V8h.5A1.5 1.5 0 0119 9.5v10a1.5 1.5 0 01-1.5 1.5h-13A1.5 1.5 0 013 19.5v-10z" />
+                                            </svg>
+                                            3D Builder
+                                        </a>
+                                    {% endif %}
                                 {% endif %}
                                 <a href="{{ url_for('event_details', event_id=event.id) }}" 
                                    class="btn-primary px-4 py-2 rounded-md text-sm whitespace-nowrap">
@@ -106,7 +116,7 @@
                     <p class="text-gray-400 mb-6">There are no upcoming events for {{ school.name }} at the moment.</p>
                     
                     {% if current_user.is_authenticated and (current_user.role in ['admin', 'teacher'] and (current_user.role == 'admin' or current_user.school_id == school.id)) %}
-                        <a href="{{ url_for('create_event', school_id=school.id) }}" 
+                        <a href="{{ url_for('main.new_event', school_id=school.id) }}" 
                            class="inline-flex items-center btn-primary px-6 py-2 rounded-lg font-medium">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
                                 <path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd" />
@@ -119,3 +129,7 @@
         {% endif %}
     </section>
 {% endblock %}
+        3D View
+    </a>
+</div>
+
