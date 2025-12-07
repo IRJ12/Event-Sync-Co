@@ -205,3 +205,7 @@ def delete_event(event_id):
 @main_bp.route('/contact')
 def contact():
     return render_template('contact.html', title='Contact Us')
+
+@main_bp.route('/student-demo')
+def student_demo():
+    return render_template('student_demo.html')

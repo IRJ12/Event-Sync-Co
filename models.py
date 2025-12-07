@@ -85,6 +85,8 @@ class Event(db.Model):
     registration_deadline = db.Column(db.Date, nullable=True)
     price = db.Column(db.Float, default=0.0)
     image_url = db.Column(db.String(200), nullable=True)
+    image_path = db.Column(db.String(200), nullable=True)  # For file uploads
+    layout_3d = db.Column(db.Text, nullable=True)  # Store JSON string of the 3D layout
     
     # Foreign keys
     school_id = db.Column(db.Integer, db.ForeignKey('schools.id'), nullable=False)
